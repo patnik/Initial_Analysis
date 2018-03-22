@@ -1,0 +1,895 @@
+---
+title: "Nikos_initial_analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, include=FALSE}
+setwd("//Users/nikospatias/Desktop/PhD_Data/")
+```
+
+
+
+Read in Population files (by age) from 1971 to 2011, which are split in groups
+0-14, 15-24, 25-29, 30-44, 45-59, 60-64, 65+
+
+```{r}
+# 1971 data
+POP71_0_14 <- read.csv("lookup_1971_Age_Age0_14.csv")
+POP71_15_19 <- read.csv("lookup_1971_Age_Age15_19.csv")
+POP71_20_24 <- read.csv("lookup_1971_Age_Age20_24.csv")
+POP71_25_29 <- read.csv("lookup_1971_Age_Age25_29.csv")
+POP71_30_44 <- read.csv("lookup_1971_Age_Age30_44.csv")
+POP71_45_59 <- read.csv("lookup_1971_Age_Age45_59.csv")
+POP71_60_64 <- read.csv("lookup_1971_Age_Age60_64.csv")
+POP71_65p <- read.csv("lookup_1971_Age_Age65p.csv")
+
+# 1981 data
+POP81_0_14 <- read.csv("lookup_1981_Age_Age0_14.csv")
+POP81_15_19 <- read.csv("lookup_1981_Age_Age15_19.csv")
+POP81_20_24 <- read.csv("lookup_1981_Age_Age20_24.csv")
+POP81_25_29 <- read.csv("lookup_1981_Age_Age25_29.csv")
+POP81_30_44 <- read.csv("lookup_1981_Age_Age30_44.csv")
+POP81_45_59 <- read.csv("lookup_1981_Age_Age45_59.csv")
+POP81_60_64 <- read.csv("lookup_1981_Age_Age60_64.csv")
+POP81_65p <- read.csv("lookup_1981_Age_Age65p.csv")
+
+# 1991 data
+POP91_0_14 <- read.csv("lookup_1991_Age_Age0_14.csv")
+POP91_15_19 <- read.csv("lookup_1991_Age_Age15_19.csv")
+POP91_20_24 <- read.csv("lookup_1991_Age_Age20_24.csv")
+POP91_25_29 <- read.csv("lookup_1991_Age_Age25_29.csv")
+POP91_30_44 <- read.csv("lookup_1991_Age_Age30_44.csv")
+POP91_45_59 <- read.csv("lookup_1991_Age_Age45_59.csv")
+POP91_60_64 <- read.csv("lookup_1991_Age_Age60_64.csv")
+POP91_65p <- read.csv("lookup_1991_Age_Age65p.csv")
+
+# 2001 data
+POP01_0_14 <- read.csv("lookup_2001_Age_Age0_14.csv")
+POP01_15_19 <- read.csv("lookup_2001_Age_Age15_19.csv")
+POP01_20_24 <- read.csv("lookup_2001_Age_Age20_24.csv")
+POP01_25_29 <- read.csv("lookup_2001_Age_Age25_29.csv")
+POP01_30_44 <- read.csv("lookup_2001_Age_Age30_44.csv")
+POP01_45_59 <- read.csv("lookup_2001_Age_Age45_59.csv")
+POP01_60_64 <- read.csv("lookup_2001_Age_Age60_64.csv")
+POP01_65p <- read.csv("lookup_2001_Age_Age65p.csv")
+
+# 2011 data
+POP11_0_14 <- read.csv("lookup_2011_Age_Age0_14.csv")
+POP11_15_19 <- read.csv("lookup_2011_Age_Age15_19.csv")
+POP11_20_24 <- read.csv("lookup_2011_Age_Age20_24.csv")
+POP11_25_29 <- read.csv("lookup_2011_Age_Age25_29.csv")
+POP11_30_44 <- read.csv("lookup_2011_Age_Age30_44.csv")
+POP11_45_59 <- read.csv("lookup_2011_Age_Age45_59.csv")
+POP11_60_64 <- read.csv("lookup_2011_Age_Age60_64.csv")
+POP11_65p <- read.csv("lookup_2011_Age_Age65p.csv")
+```
+
+
+Read in the 1 km2 grid for the whole UK as well as the Liverpol City Region boundaries that we can use to visualise some of the data
+
+```{r}
+library("rgdal")
+Vector_grid<- readOGR(dsn = ".", layer = "vector_grid", stringsAsFactors = FALSE)
+Liv_Ct_Reg<- readOGR(dsn = ".", layer = "Liverpool_City_Region", stringsAsFactors = FALSE)
+
+```
+
+
+
+
+
+
+Clip the grid, including only the Liverpool district
+
+```{r}
+library("raster")
+Liverpool_grid <- crop(Vector_grid, extent(Liv_Ct_Reg))
+plot(Liverpool_grid)
+
+```
+
+```{r, include=FALSE}
+POP71_0_14$grid_ID <- as.factor(POP71_0_14$grid_ID)
+POP71_15_19$grid_ID <- as.factor(POP71_15_19$grid_ID)
+POP71_20_24$grid_ID <- as.factor(POP71_20_24$grid_ID)
+POP71_25_29$grid_ID <- as.factor(POP71_25_29$grid_ID)
+POP71_30_44$grid_ID <- as.factor(POP71_30_44$grid_ID)
+POP71_45_59$grid_ID <- as.factor(POP71_45_59$grid_ID)
+POP71_60_64$grid_ID <- as.factor(POP71_60_64$grid_ID)
+POP71_65p$grid_ID <- as.factor(POP71_65p$grid_ID)
+
+POP81_0_14$grid_ID <- as.factor(POP81_0_14$grid_ID)
+POP81_15_19$grid_ID <- as.factor(POP81_15_19$grid_ID)
+POP81_20_24$grid_ID <- as.factor(POP81_20_24$grid_ID)
+POP81_25_29$grid_ID <- as.factor(POP81_25_29$grid_ID)
+POP81_30_44$grid_ID <- as.factor(POP81_30_44$grid_ID)
+POP81_45_59$grid_ID <- as.factor(POP81_45_59$grid_ID)
+POP81_60_64$grid_ID <- as.factor(POP81_60_64$grid_ID)
+POP81_65p$grid_ID <- as.factor(POP81_65p$grid_ID)
+
+POP91_0_14$grid_ID <- as.factor(POP91_0_14$grid_ID)
+POP91_15_19$grid_ID <- as.factor(POP91_15_19$grid_ID)
+POP91_20_24$grid_ID <- as.factor(POP91_20_24$grid_ID)
+POP91_25_29$grid_ID <- as.factor(POP91_25_29$grid_ID)
+POP91_30_44$grid_ID <- as.factor(POP91_30_44$grid_ID)
+POP91_45_59$grid_ID <- as.factor(POP91_45_59$grid_ID)
+POP91_60_64$grid_ID <- as.factor(POP91_60_64$grid_ID)
+POP91_65p$grid_ID <- as.factor(POP91_65p$grid_ID)
+
+POP01_0_14$grid_ID <- as.factor(POP01_0_14$grid_ID)
+POP01_15_19$grid_ID <- as.factor(POP01_15_19$grid_ID)
+POP01_20_24$grid_ID <- as.factor(POP01_20_24$grid_ID)
+POP01_25_29$grid_ID <- as.factor(POP01_25_29$grid_ID)
+POP01_30_44$grid_ID <- as.factor(POP01_30_44$grid_ID)
+POP01_45_59$grid_ID <- as.factor(POP01_45_59$grid_ID)
+POP01_60_64$grid_ID <- as.factor(POP01_60_64$grid_ID)
+POP01_65p$grid_ID <- as.factor(POP01_65p$grid_ID)
+
+POP11_0_14$grid_ID <- as.factor(POP11_0_14$grid_ID)
+POP11_15_19$grid_ID <- as.factor(POP11_15_19$grid_ID)
+POP11_20_24$grid_ID <- as.factor(POP11_20_24$grid_ID)
+POP11_25_29$grid_ID <- as.factor(POP11_25_29$grid_ID)
+POP11_30_44$grid_ID <- as.factor(POP11_30_44$grid_ID)
+POP11_45_59$grid_ID <- as.factor(POP11_45_59$grid_ID)
+POP11_60_64$grid_ID <- as.factor(POP11_60_64$grid_ID)
+POP11_65p$grid_ID <- as.factor(POP11_65p$grid_ID)
+
+Liverpool_grid@data$ID <- as.factor(Liverpool_grid@data$ID)
+
+
+```
+
+```{r, include=FALSE}
+# Rename the second column to something more sensible
+colnames(POP71_0_14)[colnames(POP71_0_14) == 'grid_values'] <- 'POP71_0_14'
+colnames(POP71_15_19)[colnames(POP71_15_19) == 'grid_values'] <- 'POP71_15_19'
+colnames(POP71_20_24)[colnames(POP71_20_24) == 'grid_values'] <- 'POP71_20_24'
+colnames(POP71_25_29)[colnames(POP71_25_29) == 'grid_values'] <- 'POP71_25_29'
+colnames(POP71_30_44)[colnames(POP71_30_44) == 'grid_values'] <- 'POP71_30_44'
+colnames(POP71_45_59)[colnames(POP71_45_59) == 'grid_values'] <- 'POP71_45_59'
+colnames(POP71_60_64)[colnames(POP71_60_64) == 'grid_values'] <- 'POP71_60_64'
+colnames(POP71_65p)[colnames(POP71_65p) == 'grid_values'] <- 'POP71_65p'
+
+colnames(POP81_0_14)[colnames(POP81_0_14) == 'grid_values'] <- 'POP81_0_14'
+colnames(POP81_15_19)[colnames(POP81_15_19) == 'grid_values'] <- 'POP81_15_19'
+colnames(POP81_20_24)[colnames(POP81_20_24) == 'grid_values'] <- 'POP81_20_24'
+colnames(POP81_25_29)[colnames(POP81_25_29) == 'grid_values'] <- 'POP81_25_29'
+colnames(POP81_30_44)[colnames(POP81_30_44) == 'grid_values'] <- 'POP81_30_44'
+colnames(POP81_45_59)[colnames(POP81_45_59) == 'grid_values'] <- 'POP81_45_59'
+colnames(POP81_60_64)[colnames(POP81_60_64) == 'grid_values'] <- 'POP81_60_64'
+colnames(POP81_65p)[colnames(POP81_65p) == 'grid_values'] <- 'POP81_65p'
+
+colnames(POP91_0_14)[colnames(POP91_0_14) == 'grid_values'] <- 'POP91_0_14'
+colnames(POP91_15_19)[colnames(POP91_15_19) == 'grid_values'] <- 'POP91_15_19'
+colnames(POP91_20_24)[colnames(POP91_20_24) == 'grid_values'] <- 'POP91_20_24'
+colnames(POP91_25_29)[colnames(POP91_25_29) == 'grid_values'] <- 'POP91_25_29'
+colnames(POP91_30_44)[colnames(POP91_30_44) == 'grid_values'] <- 'POP91_30_44'
+colnames(POP91_45_59)[colnames(POP91_45_59) == 'grid_values'] <- 'POP91_45_59'
+colnames(POP91_60_64)[colnames(POP91_60_64) == 'grid_values'] <- 'POP91_60_64'
+colnames(POP91_65p)[colnames(POP91_65p) == 'grid_values'] <- 'POP91_65p'
+
+colnames(POP01_0_14)[colnames(POP01_0_14) == 'grid_values'] <- 'POP01_0_14'
+colnames(POP01_15_19)[colnames(POP01_15_19) == 'grid_values'] <- 'POP01_15_19'
+colnames(POP01_20_24)[colnames(POP01_20_24) == 'grid_values'] <- 'POP01_20_24'
+colnames(POP01_25_29)[colnames(POP01_25_29) == 'grid_values'] <- 'POP01_25_29'
+colnames(POP01_30_44)[colnames(POP01_30_44) == 'grid_values'] <- 'POP01_30_44'
+colnames(POP01_45_59)[colnames(POP01_45_59) == 'grid_values'] <- 'POP01_45_59'
+colnames(POP01_60_64)[colnames(POP01_60_64) == 'grid_values'] <- 'POP01_60_64'
+colnames(POP01_65p)[colnames(POP01_65p) == 'grid_values'] <- 'POP01_65p'
+
+colnames(POP11_0_14)[colnames(POP11_0_14) == 'grid_values'] <- 'POP11_0_14'
+colnames(POP11_15_19)[colnames(POP11_15_19) == 'grid_values'] <- 'POP11_15_19'
+colnames(POP11_20_24)[colnames(POP11_20_24) == 'grid_values'] <- 'POP11_20_24'
+colnames(POP11_25_29)[colnames(POP11_25_29) == 'grid_values'] <- 'POP11_25_29'
+colnames(POP11_30_44)[colnames(POP11_30_44) == 'grid_values'] <- 'POP11_30_44'
+colnames(POP11_45_59)[colnames(POP11_45_59) == 'grid_values'] <- 'POP11_45_59'
+colnames(POP11_60_64)[colnames(POP11_60_64) == 'grid_values'] <- 'POP11_60_64'
+colnames(POP11_65p)[colnames(POP11_65p) == 'grid_values'] <- 'POP11_65p'
+```
+
+Join the population data to the vector layer
+
+```{r, include=FALSE}
+# Join the population data to the vector layer
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP71_0_14[match(Liverpool_grid@data$ID, POP71_0_14$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP71_15_19[match(Liverpool_grid@data$ID, POP71_15_19$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP71_20_24[match(Liverpool_grid@data$ID, POP71_20_24$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP71_25_29[match(Liverpool_grid@data$ID, POP71_25_29$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP71_30_44[match(Liverpool_grid@data$ID, POP71_30_44$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP71_45_59[match(Liverpool_grid@data$ID, POP71_45_59$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP71_60_64[match(Liverpool_grid@data$ID, POP71_60_64$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP71_65p[match(Liverpool_grid@data$ID, POP71_65p$grid_ID), ])
+
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP81_0_14[match(Liverpool_grid@data$ID, POP81_0_14$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP81_15_19[match(Liverpool_grid@data$ID, POP81_15_19$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP81_20_24[match(Liverpool_grid@data$ID, POP81_20_24$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP81_25_29[match(Liverpool_grid@data$ID, POP81_25_29$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP81_30_44[match(Liverpool_grid@data$ID, POP81_30_44$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP81_45_59[match(Liverpool_grid@data$ID, POP81_45_59$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP81_60_64[match(Liverpool_grid@data$ID, POP81_60_64$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP81_65p[match(Liverpool_grid@data$ID, POP81_65p$grid_ID), ])
+
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP91_0_14[match(Liverpool_grid@data$ID, POP91_0_14$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP91_15_19[match(Liverpool_grid@data$ID, POP91_15_19$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP91_20_24[match(Liverpool_grid@data$ID, POP91_20_24$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP91_25_29[match(Liverpool_grid@data$ID, POP91_25_29$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP91_30_44[match(Liverpool_grid@data$ID, POP91_30_44$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP91_45_59[match(Liverpool_grid@data$ID, POP91_45_59$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP91_60_64[match(Liverpool_grid@data$ID, POP91_60_64$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP91_65p[match(Liverpool_grid@data$ID, POP91_65p$grid_ID), ])
+
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP01_0_14[match(Liverpool_grid@data$ID, POP01_0_14$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP01_15_19[match(Liverpool_grid@data$ID, POP01_15_19$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP01_20_24[match(Liverpool_grid@data$ID, POP01_20_24$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP01_25_29[match(Liverpool_grid@data$ID, POP01_25_29$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP01_30_44[match(Liverpool_grid@data$ID, POP01_30_44$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP01_45_59[match(Liverpool_grid@data$ID, POP01_45_59$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP01_60_64[match(Liverpool_grid@data$ID, POP01_60_64$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP01_65p[match(Liverpool_grid@data$ID, POP01_65p$grid_ID), ])
+
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP11_0_14[match(Liverpool_grid@data$ID, POP11_0_14$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP11_15_19[match(Liverpool_grid@data$ID, POP11_15_19$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP11_20_24[match(Liverpool_grid@data$ID, POP11_20_24$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP11_25_29[match(Liverpool_grid@data$ID, POP11_25_29$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP11_30_44[match(Liverpool_grid@data$ID, POP11_30_44$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP11_45_59[match(Liverpool_grid@data$ID, POP11_45_59$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP11_60_64[match(Liverpool_grid@data$ID, POP11_60_64$grid_ID), ])
+Liverpool_grid@data = data.frame(Liverpool_grid@data, POP11_65p[match(Liverpool_grid@data$ID, POP11_65p$grid_ID), ])
+
+
+
+# and remove the columns that we don't need
+Liverpool_grid@data <- subset(Liverpool_grid@data, select = -c(grid_ID.1, grid_ID.2, grid_ID.3, grid_ID.4, grid_ID.5, grid_ID.6, grid_ID.7, grid_ID.8, grid_ID.9, grid_ID.10, grid_ID.11, grid_ID.12, grid_ID.13, grid_ID.14, grid_ID.15, grid_ID.16, grid_ID.17, grid_ID.18, grid_ID.19, grid_ID.20, grid_ID.21, grid_ID.22, grid_ID.23, grid_ID.24, grid_ID.25, grid_ID.26, grid_ID.27, grid_ID.28, grid_ID.29, grid_ID.30, grid_ID.31, grid_ID.32, grid_ID.33, grid_ID.34, grid_ID.35) )
+
+```
+
+
+```{r}
+head(Liverpool_grid@data)
+```
+
+Calculate total population and percentages by age group (in this graph only 1971 is shown but Ihave done the same for all the years)
+```{r}
+# Total Population by grid cell 1971
+Liverpool_grid@data$TOT_POP71 <- Liverpool_grid@data$POP71_0_14 + Liverpool_grid@data$POP71_15_19 + Liverpool_grid@data$POP71_20_24 + Liverpool_grid@data$POP71_25_29 + Liverpool_grid@data$POP71_30_44 + Liverpool_grid@data$POP71_45_59 + Liverpool_grid@data$POP71_60_64 + Liverpool_grid@data$POP71_65p
+
+# Percentages 1971
+Liverpool_grid@data$POP71_0_14PC <- (Liverpool_grid@data$POP71_0_14/Liverpool_grid@data$TOT_POP71) *100
+Liverpool_grid@data$POP71_15_19PC <- (Liverpool_grid@data$POP71_15_19/Liverpool_grid@data$TOT_POP71) *100
+Liverpool_grid@data$POP71_20_24PC <- (Liverpool_grid@data$POP71_20_24/Liverpool_grid@data$TOT_POP71) *100
+Liverpool_grid@data$POP71_25_29PC <- (Liverpool_grid@data$POP71_25_29/Liverpool_grid@data$TOT_POP71) *100
+Liverpool_grid@data$POP71_30_44PC <- (Liverpool_grid@data$POP71_30_44/Liverpool_grid@data$TOT_POP71) *100
+Liverpool_grid@data$POP71_45_59PC <- (Liverpool_grid@data$POP71_45_59/Liverpool_grid@data$TOT_POP71) *100
+Liverpool_grid@data$POP71_60_64PC <- (Liverpool_grid@data$POP71_60_64/Liverpool_grid@data$TOT_POP71) *100
+Liverpool_grid@data$POP71_65pPC <- (Liverpool_grid@data$POP71_65p/Liverpool_grid@data$TOT_POP71) *100
+
+```
+
+```{r, include=FALSE}
+
+# Total Population by grid cell 1981
+Liverpool_grid@data$TOT_POP81 <- Liverpool_grid@data$POP81_0_14 + Liverpool_grid@data$POP81_15_19 + Liverpool_grid@data$POP81_20_24 + Liverpool_grid@data$POP81_25_29 + Liverpool_grid@data$POP81_30_44 + Liverpool_grid@data$POP81_45_59 + Liverpool_grid@data$POP81_60_64 + Liverpool_grid@data$POP81_65p
+
+# Percentages 1981
+Liverpool_grid@data$POP81_0_14PC <- (Liverpool_grid@data$POP81_0_14/Liverpool_grid@data$TOT_POP81) *100
+Liverpool_grid@data$POP81_15_19PC <- (Liverpool_grid@data$POP81_15_19/Liverpool_grid@data$TOT_POP81) *100
+Liverpool_grid@data$POP81_20_24PC <- (Liverpool_grid@data$POP81_20_24/Liverpool_grid@data$TOT_POP81) *100
+Liverpool_grid@data$POP81_25_29PC <- (Liverpool_grid@data$POP81_25_29/Liverpool_grid@data$TOT_POP81) *100
+Liverpool_grid@data$POP81_30_44PC <- (Liverpool_grid@data$POP81_30_44/Liverpool_grid@data$TOT_POP81) *100
+Liverpool_grid@data$POP81_45_59PC <- (Liverpool_grid@data$POP81_45_59/Liverpool_grid@data$TOT_POP81) *100
+Liverpool_grid@data$POP81_60_64PC <- (Liverpool_grid@data$POP81_60_64/Liverpool_grid@data$TOT_POP81) *100
+Liverpool_grid@data$POP81_65pPC <- (Liverpool_grid@data$POP81_65p/Liverpool_grid@data$TOT_POP81) *100
+
+# Total Population by grid cell 1991
+Liverpool_grid@data$TOT_POP91 <- Liverpool_grid@data$POP91_0_14 + Liverpool_grid@data$POP91_15_19 + Liverpool_grid@data$POP91_20_24 + Liverpool_grid@data$POP91_25_29 + Liverpool_grid@data$POP91_30_44 + Liverpool_grid@data$POP91_45_59 + Liverpool_grid@data$POP91_60_64 + Liverpool_grid@data$POP91_65p
+
+# Percentages 1991
+Liverpool_grid@data$POP91_0_14PC <- (Liverpool_grid@data$POP91_0_14/Liverpool_grid@data$TOT_POP91) *100
+Liverpool_grid@data$POP91_15_19PC <- (Liverpool_grid@data$POP91_15_19/Liverpool_grid@data$TOT_POP91) *100
+Liverpool_grid@data$POP91_20_24PC <- (Liverpool_grid@data$POP91_20_24/Liverpool_grid@data$TOT_POP91) *100
+Liverpool_grid@data$POP91_25_29PC <- (Liverpool_grid@data$POP91_25_29/Liverpool_grid@data$TOT_POP91) *100
+Liverpool_grid@data$POP91_30_44PC <- (Liverpool_grid@data$POP91_30_44/Liverpool_grid@data$TOT_POP91) *100
+Liverpool_grid@data$POP91_45_59PC <- (Liverpool_grid@data$POP91_45_59/Liverpool_grid@data$TOT_POP91) *100
+Liverpool_grid@data$POP91_60_64PC <- (Liverpool_grid@data$POP91_60_64/Liverpool_grid@data$TOT_POP91) *100
+Liverpool_grid@data$POP91_65pPC <- (Liverpool_grid@data$POP91_65p/Liverpool_grid@data$TOT_POP91) *100
+
+# Total Population by grid cell 2001
+Liverpool_grid@data$TOT_POP01 <- Liverpool_grid@data$POP01_0_14 + Liverpool_grid@data$POP01_15_19 + Liverpool_grid@data$POP01_20_24 + Liverpool_grid@data$POP01_25_29 + Liverpool_grid@data$POP01_30_44 + Liverpool_grid@data$POP01_45_59 + Liverpool_grid@data$POP01_60_64 + Liverpool_grid@data$POP01_65p
+
+# Percentages 2001
+Liverpool_grid@data$POP01_0_14PC <- (Liverpool_grid@data$POP01_0_14/Liverpool_grid@data$TOT_POP01) *100
+Liverpool_grid@data$POP01_15_19PC <- (Liverpool_grid@data$POP01_15_19/Liverpool_grid@data$TOT_POP01) *100
+Liverpool_grid@data$POP01_20_24PC <- (Liverpool_grid@data$POP01_20_24/Liverpool_grid@data$TOT_POP01) *100
+Liverpool_grid@data$POP01_25_29PC <- (Liverpool_grid@data$POP01_25_29/Liverpool_grid@data$TOT_POP01) *100
+Liverpool_grid@data$POP01_30_44PC <- (Liverpool_grid@data$POP01_30_44/Liverpool_grid@data$TOT_POP01) *100
+Liverpool_grid@data$POP01_45_59PC <- (Liverpool_grid@data$POP01_45_59/Liverpool_grid@data$TOT_POP01) *100
+Liverpool_grid@data$POP01_60_64PC <- (Liverpool_grid@data$POP01_60_64/Liverpool_grid@data$TOT_POP01) *100
+Liverpool_grid@data$POP01_65pPC <- (Liverpool_grid@data$POP01_65p/Liverpool_grid@data$TOT_POP01) *100
+
+# Total Population by grid cell 2011
+Liverpool_grid@data$TOT_POP11 <- Liverpool_grid@data$POP11_0_14 + Liverpool_grid@data$POP11_15_19 + Liverpool_grid@data$POP11_20_24 + Liverpool_grid@data$POP11_25_29 + Liverpool_grid@data$POP11_30_44 + Liverpool_grid@data$POP11_45_59 + Liverpool_grid@data$POP11_60_64 + Liverpool_grid@data$POP11_65p
+
+# Percentages 2011
+Liverpool_grid@data$POP11_0_14PC <- (Liverpool_grid@data$POP11_0_14/Liverpool_grid@data$TOT_POP11) *100
+Liverpool_grid@data$POP11_15_19PC <- (Liverpool_grid@data$POP11_15_19/Liverpool_grid@data$TOT_POP11) *100
+Liverpool_grid@data$POP11_20_24PC <- (Liverpool_grid@data$POP11_20_24/Liverpool_grid@data$TOT_POP11) *100
+Liverpool_grid@data$POP11_25_29PC <- (Liverpool_grid@data$POP11_25_29/Liverpool_grid@data$TOT_POP11) *100
+Liverpool_grid@data$POP11_30_44PC <- (Liverpool_grid@data$POP11_30_44/Liverpool_grid@data$TOT_POP11) *100
+Liverpool_grid@data$POP11_45_59PC <- (Liverpool_grid@data$POP11_45_59/Liverpool_grid@data$TOT_POP11) *100
+Liverpool_grid@data$POP11_60_64PC <- (Liverpool_grid@data$POP11_60_64/Liverpool_grid@data$TOT_POP11) *100
+Liverpool_grid@data$POP11_65pPC <- (Liverpool_grid@data$POP11_65p/Liverpool_grid@data$TOT_POP11) *100
+
+```
+
+
+```{r}
+# Transform the coordinate system form British National Grid to WGS84
+wgs84 = '+proj=longlat +datum=WGS84'
+Liv_wgs = spTransform(Liverpool_grid, CRS(wgs84))
+
+```
+
+
+
+```{r}
+# Create colour palette
+library ("leaflet")
+bins <- c(0, 5, 10, 15, 20, 30, 40, Inf)
+pal <- colorBin("Blues", domain = Liv_wgs@data$POP71_0_14PC, bins = bins)
+
+```
+
+Create maps showing the distribution of population between 0-14 for all the years 
+```{r}
+map<-leaflet()%>%
+addTiles(group = "OSM (default)") %>%
+addProviderTiles(providers$Stamen.Toner, group = "Toner") %>%
+addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite") %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP71_0_14PC),
+            group="POP71_0_14PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 0-14 at 1971 Census </strong>", 
+                      Liv_wgs@data$POP71_0_14PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP81_0_14PC),
+            group="POP81_0_14PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 0-14 at 1981 Census </strong>", 
+                      Liv_wgs@data$POP81_0_14PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP91_0_14PC),
+            group="POP91_0_14PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 0-14 at 1991 Census </strong>", 
+                      Liv_wgs@data$POP91_0_14PC)) %>%  
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP01_0_14PC),
+            group="POP01_0_14PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 0-14 at 2001 Census </strong>", 
+                      Liv_wgs@data$POP01_0_14PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP11_0_14PC),
+            group="POP11_0_14PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 0-14 at 2011 Census </strong>", 
+                      Liv_wgs@data$POP11_0_14PC)) %>%  
+addLayersControl(
+          baseGroups = c("OSM (default)", "Toner", "Toner Lite"),
+          overlayGroups =c("POP71_0_14PC", "POP81_0_14PC", "POP91_0_14PC", "POP01_0_14PC", "POP11_0_14PC"),
+          options = layersControlOptions(collapsed=FALSE)
+          )
+map
+```
+
+
+Create maps showing the distribution of population between 15-19 for all the years
+
+```{r}
+
+map<-leaflet()%>%
+addTiles(group = "OSM (default)") %>%
+addProviderTiles(providers$Stamen.Toner, group = "Toner") %>%
+addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite") %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP71_15_19PC),
+            group="POP71_15_19PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 15-19 at 1971 Census </strong>", 
+                      Liv_wgs@data$POP71_15_19PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP81_15_19PC),
+            group="POP81_15_19PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 15-19 at 1981 Census </strong>", 
+                      Liv_wgs@data$POP81_15_19PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP91_15_19PC),
+            group="POP91_15_19PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 15-19 at 1991 Census </strong>", 
+                      Liv_wgs@data$POP91_15_19PC)) %>%  
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP01_15_19PC),
+            group="POP01_15_19PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 15-19 at 2001 Census </strong>", 
+                      Liv_wgs@data$POP01_15_19PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP11_15_19PC),
+            group="POP11_15_19PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 15-19 at 2011 Census </strong>", 
+                      Liv_wgs@data$POP11_15_19PC)) %>%  
+addLayersControl(
+          baseGroups = c("OSM (default)", "Toner", "Toner Lite"),
+          overlayGroups =c("POP71_15_19PC","POP81_15_19PC","POP91_15_19PC","POP01_15_19PC","POP11_15_19PC"),
+          options = layersControlOptions(collapsed=FALSE)
+          )
+map
+  
+
+```
+
+
+Create maps showing the distribution of population between 20-24 for all the years
+
+```{r}
+map<-leaflet()%>%
+addTiles(group = "OSM (default)") %>%
+addProviderTiles(providers$Stamen.Toner, group = "Toner") %>%
+addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite") %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP71_20_24PC),
+            group="POP71_20_24PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 20-24 at 1971 Census </strong>", 
+                      Liv_wgs@data$POP71_20_24PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP81_20_24PC),
+            group="POP81_20_24PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 20-24 at 1981 Census </strong>", 
+                      Liv_wgs@data$POP81_20_24PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP91_20_24PC),
+            group="POP91_20_24PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 20-24 at 1991 Census </strong>", 
+                      Liv_wgs@data$POP91_20_24PC)) %>%  
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP01_20_24PC),
+            group="POP01_20_24PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 20-24 at 2001 Census </strong>", 
+                      Liv_wgs@data$POP01_20_24PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP11_20_24PC),
+            group="POP11_20_24PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 20-24 at 2011 Census </strong>", 
+                      Liv_wgs@data$POP11_20_24PC)) %>%  
+addLayersControl(
+          baseGroups = c("OSM (default)", "Toner", "Toner Lite"),
+          overlayGroups =c("POP71_20_24PC","POP81_20_24PC","POP91_20_24PC","POP01_20_24PC","POP11_20_24PC"),
+          options = layersControlOptions(collapsed=FALSE)
+          )
+map
+
+
+```
+
+Create maps showing the distribution of population between 25-29 for all the years
+```{r}
+
+map<-leaflet()%>%
+addTiles(group = "OSM (default)") %>%
+addProviderTiles(providers$Stamen.Toner, group = "Toner") %>%
+addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite") %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP71_25_29PC),
+            group="POP71_25_29PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 25-29 at 1971 Census </strong>", 
+                      Liv_wgs@data$POP71_25_29PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP81_25_29PC),
+            group="POP81_25_29PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 25-29 at 1981 Census </strong>", 
+                      Liv_wgs@data$POP81_25_29PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP91_25_29PC),
+            group="POP91_25_29PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 25-29 at 1991 Census </strong>", 
+                      Liv_wgs@data$POP91_25_29PC)) %>%  
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP01_25_29PC),
+            group="POP01_25_29PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 25-29 at 2001 Census </strong>", 
+                      Liv_wgs@data$POP01_25_29PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP11_25_29PC),
+            group="POP11_25_29PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 25-29 at 2011 Census </strong>", 
+                      Liv_wgs@data$POP11_25_29PC)) %>%  
+addLayersControl(
+          baseGroups = c("OSM (default)", "Toner", "Toner Lite"),
+          overlayGroups =c("POP71_25_29PC","POP81_25_29PC","POP91_25_29PC","POP01_25_29PC","POP11_25_29PC"),
+          options = layersControlOptions(collapsed=FALSE)
+          )
+map
+
+
+```
+
+Create maps showing the distribution of population between 30-44 for all the years
+
+```{r}
+map<-leaflet()%>%
+addTiles(group = "OSM (default)") %>%
+addProviderTiles(providers$Stamen.Toner, group = "Toner") %>%
+addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite") %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP71_30_44PC),
+            group="POP71_30_44PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 30-44 at 1971 Census </strong>", 
+                      Liv_wgs@data$POP71_30_44PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP81_30_44PC),
+            group="POP81_30_44PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 30-44 at 1981 Census </strong>", 
+                      Liv_wgs@data$POP81_30_44PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP91_30_44PC),
+            group="POP91_30_44PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 30-44 at 1991 Census </strong>", 
+                      Liv_wgs@data$POP91_30_44PC)) %>%  
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP01_30_44PC),
+            group="POP01_30_44PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 30-44 at 2001 Census </strong>", 
+                      Liv_wgs@data$POP01_30_44PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP11_30_44PC),
+            group="POP11_30_44PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 30-44 at 2011 Census </strong>", 
+                      Liv_wgs@data$POP11_30_44PC)) %>%  
+addLayersControl(
+          baseGroups = c("OSM (default)", "Toner", "Toner Lite"),
+          overlayGroups =c("POP71_30_44PC","POP81_30_44PC","POP91_30_44PC","POP01_30_44PC","POP11_30_44PC"),
+          options = layersControlOptions(collapsed=FALSE)
+          )
+map
+
+
+```
+
+Create maps showing the distribution of population between 45-59 for all the years
+
+```{r}
+map<-leaflet()%>%
+addTiles(group = "OSM (default)") %>%
+addProviderTiles(providers$Stamen.Toner, group = "Toner") %>%
+addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite") %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP71_45_59PC),
+            group="POP71_45_59PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 45-59 at 1971 Census </strong>", 
+                      Liv_wgs@data$POP71_45_59PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP81_45_59PC),
+            group="POP81_45_59PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 45-59 at 1981 Census </strong>", 
+                      Liv_wgs@data$POP81_45_59PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP91_45_59PC),
+            group="POP91_45_59PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 45-59 at 1991 Census </strong>", 
+                      Liv_wgs@data$POP91_45_59PC)) %>%  
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP01_45_59PC),
+            group="POP01_45_59PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 45-59 at 2001 Census </strong>", 
+                      Liv_wgs@data$POP01_45_59PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP11_45_59PC),
+            group="POP11_45_59PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 45-59 at 2011 Census </strong>", 
+                      Liv_wgs@data$POP11_45_59PC)) %>%  
+addLayersControl(
+          baseGroups = c("OSM (default)", "Toner", "Toner Lite"),
+          overlayGroups =c("POP71_45_59PC","POP81_45_59PC","POP91_45_59PC","POP01_45_59PC","POP11_45_59PC"),
+          options = layersControlOptions(collapsed=FALSE)
+          )
+map
+
+
+
+
+```
+
+Create maps showing the distribution of population between 60-64 for all the years
+
+```{r}
+map<-leaflet()%>%
+addTiles(group = "OSM (default)") %>%
+addProviderTiles(providers$Stamen.Toner, group = "Toner") %>%
+addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite") %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP71_60_64PC),
+            group="POP71_60_64PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 60-64 at 1971 Census </strong>", 
+                      Liv_wgs@data$POP71_60_64PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP81_60_64PC),
+            group="POP81_60_64PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 60-64 at 1981 Census </strong>", 
+                      Liv_wgs@data$POP81_60_64PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP91_60_64PC),
+            group="POP91_60_64PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 60-64 at 1991 Census </strong>", 
+                      Liv_wgs@data$POP91_60_64PC)) %>%  
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP01_60_64PC),
+            group="POP01_60_64PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 60-64 at 2001 Census </strong>", 
+                      Liv_wgs@data$POP01_60_64PC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP11_60_64PC),
+            group="POP11_60_64PC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 60-64 at 2011 Census </strong>", 
+                      Liv_wgs@data$POP11_60_64PC)) %>%  
+addLayersControl(
+          baseGroups = c("OSM (default)", "Toner", "Toner Lite"),
+          overlayGroups =c("POP71_60_64PC","POP81_60_64PC","POP91_60_64PC","POP01_60_64PC","POP11_60_64PC"),
+          options = layersControlOptions(collapsed=FALSE)
+          )
+map
+
+
+
+
+```
+
+Create maps showing the distribution of population between 65+ for all the years
+
+```{r}
+map<-leaflet()%>%
+addTiles(group = "OSM (default)") %>%
+addProviderTiles(providers$Stamen.Toner, group = "Toner") %>%
+addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite") %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP71_65pPC),
+            group="POP71_65pPC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 65+ at 1971 Census </strong>", 
+                      Liv_wgs@data$POP71_65pPC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP81_65pPC),
+            group="POP81_65pPC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 65+ at 1981 Census </strong>", 
+                      Liv_wgs@data$POP81_65pPC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP91_65pPC),
+            group="POP91_65pPC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 65+ at 1991 Census </strong>", 
+                      Liv_wgs@data$POP91_65pPC)) %>%  
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP01_65pPC),
+            group="POP01_65pPC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 65+ at 2001 Census </strong>", 
+                      Liv_wgs@data$POP01_65pPC)) %>%
+addPolygons(data = Liv_wgs,
+            fillColor = ~pal(Liv_wgs@data$POP11_65pPC),
+            group="POP11_65pPC",
+            fillOpacity = 0.8, 
+            color = "#BDBDC3", 
+            weight = 1, 
+            popup = paste0("<strong>Grid code: </strong>", 
+                      Liv_wgs@data$GRIDCODE, 
+                      "<br><strong>% population 65+ at 2011 Census </strong>", 
+                      Liv_wgs@data$POP11_65pPC)) %>%  
+addLayersControl(
+          baseGroups = c("OSM (default)", "Toner", "Toner Lite"),
+          overlayGroups =c("POP71_65pPC","POP81_65pPC","POP91_65pPC","POP91_65pPC","POP91_65pPC"),
+          options = layersControlOptions(collapsed=FALSE)
+          )
+map
+
+
+
+```
+
+
+
+
+
+
+
+
+
